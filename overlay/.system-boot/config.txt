@@ -1,0 +1,14 @@
+# A configuration file Raspberry Pi uses instead of the BIOS/UEFI you would expect to find on a conventional PC.
+# See the official documentation: https://www.raspberrypi.com/documentation/computers/config_txt.html
+
+# Forces the kernel loading system to assume a 64-bit kernel.
+arm_64bit=1
+# Increase the default turbo-mode clock if the board supports.
+arm_boost=1
+# Enable the serial console which seems to be a requirement for U-Boot:
+# https://github.com/raspberrypi/firmware/issues/1483
+enable_uart=1
+# Reduce GPU memory to give more to CPU.
+gpu_mem=32
+# Load U-Boot bootloader as a kernel image.
+kernel=u-boot.bin

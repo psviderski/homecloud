@@ -1,0 +1,40 @@
+ARG LUET_VERSION=0.30.3
+FROM quay.io/luet/base:$LUET_VERSION AS luet
+
+FROM arm64v8/alpine:3.15.2
+# TODO: add more packages as needed, see https://github.com/rancher/k3os/blob/master/images/00-base/Dockerfile and
+#  https://github.com/c3os-io/c3os/blob/master/Dockerfile.alpine
+RUN apk --no-cache add \
+    ca-certificates \
+    htop \
+    openrc \
+    openssh-server \
+    wpa_supplicant \
+    zerotier-one \
+    zerotier-one-openrc
+
+# Copy luet binary from the official image.
+COPY --from=luet /usr/bin/luet /usr/bin/luet
+COPY luet.yaml /etc/luet/luet.yaml
+
+RUN luet install -y \
+    # Use initrd and kernel extracted from the upstream openSUSE Leap repository. \
+    # TODO: migrate to using the latest Linux kernel with Raspberry Pi patches (linux-rpi4 package) and repackage
+    #  the initrd accordingly.
+    system/dracut-initrd \
+    system/kernel \
+    # Only relevant packages from meta/cos-core
+    toolchain/elemental-cli
+
+RUN luet install -y --system-target /.system-boot system/grub2-efi-image \
+    # Delete luet cache installed with the package, apparently packaged by mistake.
+    && rm -rf /.system-boot/var
+# TODO: build u-boot from source and download upstream raspberypi/firmware + copy config -> .system-boot
+RUN luet install -y --system-target /.cos-recovery system/grub2-config \
+    # Delete luet cache installed with the package, apparently packaged by mistake.
+    && rm -rf /.cos-recovery/var
+RUN luet install -y --system-target /.cos-recovery/grub2 system/grub2-artifacts \
+    # Delete luet cache installed with the package, apparently packaged by mistake.
+    && rm -rf /.cos-recovery/grub2/var
+
+COPY overlay /
