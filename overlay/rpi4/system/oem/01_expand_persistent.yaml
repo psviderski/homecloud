@@ -1,0 +1,10 @@
+name: "Expand the persistent partition COS_PERSISTENT"
+stages:
+  rootfs:
+    - name: "Expand the persistent partition occupying all available free space if not in recovery mode"
+      if: '[ ! -f "/run/cos/recovery_mode" ]'
+      layout:
+        device:
+          label: COS_PERSISTENT
+        expand_partition:
+          size: 0

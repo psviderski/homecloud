@@ -1,0 +1,35 @@
+name: "Configure rootfs layout and persistent directories"
+stages:
+  rootfs.after:
+    - name: "Layout configuration"
+      if: '[ ! -f "/run/cos/recovery_mode" ]'
+      environment_file: /run/cos/cos-layout.env
+      environment:
+        VOLUMES: "LABEL=COS_PERSISTENT:/usr/local"
+        OVERLAY: "tmpfs:25%"
+        # These are writable ephemeral paths mounted using overlayfs.
+        RW_PATHS: "/var /etc /srv"
+        PERSISTENT_STATE_PATHS: >-
+          /etc/cni
+          /etc/iscsi
+          /etc/rancher
+          /etc/runlevels
+          /etc/ssh
+          /home
+          /opt
+          /root
+          /usr/libexec
+          /var/lib/cni
+          /var/lib/kubelet
+          /var/lib/longhorn
+          /var/lib/rancher
+          /var/log
+        # Bind mount the persistent state paths (instead of using overlayfs) after mirroring the original content.
+        PERSISTENT_STATE_BIND: "true"
+    - name: "Layout configuration if running in recovery mode"
+      if: '[ -f "/run/cos/recovery_mode" ]'
+      # Omit the persistent partition in recovery mode.
+      environment_file: /run/cos/cos-layout.env
+      environment:
+        VOLUMES: ""
+        OVERLAY: "tmpfs:25%"
