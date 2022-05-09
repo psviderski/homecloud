@@ -1,7 +1,10 @@
 ARG LUET_VERSION=0.30.3
+# Use the native platform image which is a hacky workaround to speed up the arm64 container image build when run
+# on an amd64 host. The `luet install` commands below will run without emulation but this requires the luet config
+# to explicitly enable the arm64 repository.
 FROM quay.io/luet/base:$LUET_VERSION AS luet
 
-FROM arm64v8/alpine:3.15.2
+FROM --platform=linux/arm64 alpine:3.15.2
 RUN apk --no-cache add \
     ca-certificates \
     htop \
@@ -15,7 +18,7 @@ RUN apk --no-cache add \
 
 # Copy luet binary from the official image.
 COPY --from=luet /usr/bin/luet /usr/bin/luet
-COPY luet.yaml /etc/luet/luet.yaml
+COPY luet_arm64.yaml /etc/luet/luet.yaml
 
 RUN luet install -y \
     # Use initrd and kernel extracted from the upstream openSUSE Leap repository. \
@@ -24,6 +27,7 @@ RUN luet install -y \
     system/dracut-initrd \
     # TODO: strip out unused images if possible.
     system/kernel \
+    system-openrc/cos-setup \
     # Only relevant packages from meta/cos-core
     toolchain/elemental-cli \
     # Delete luet and zypper cache installed with the packages, apparently packaged by mistake.

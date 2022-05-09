@@ -1,0 +1,13 @@
+# Use a separate luet configuration file for arm64 to speed up cross-arch container image builds. See Dockerfile.rpi4
+# for more details.
+repositories:
+  - name: cos-toolkit-green-arm64
+    type: docker
+    arch: arm64
+    # Explicitly enable the arm64 repo to use it even when luet is executed in a native amd64 container to speed up
+    # cross-arch container image builds.
+    enable: true
+    # Pin the repository index instead of using latest.
+    reference: 20220505100219-repository.yaml
+    urls:
+      - quay.io/costoolkit/releases-green-arm64

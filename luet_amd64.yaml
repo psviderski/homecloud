@@ -1,0 +1,8 @@
+repositories:
+  - name: cos-toolkit-green
+    type: docker
+    arch: amd64
+    # Pin the repository index instead of using latest.
+    reference: 20220508185711-repository.yaml
+    urls:
+      - quay.io/costoolkit/releases-green

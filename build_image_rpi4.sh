@@ -1,6 +1,11 @@
 #!/bin/bash
 # Build an HCOS image for Raspberry Pi 4 from the provided container image. This script is a rewritten and simplified
 # version of https://github.com/rancher-sandbox/cOS-toolkit/blob/95430e481977c0bd69316f6e5427f2b7d455e1ed/images/arm-img-builder.sh
+# Some of the main differences:
+#  * active.img is not duplicated as passive.img and recovery.img to not increase the size of the the final image.
+#    Instead, they are going to be copied on the first system boot.
+#  * The RPi system boot and recovery partitions are populated with files from the container image. The image build
+#    process contains all the logic of how these files are prepared, not this script.
 set -e
 
 load_vars() {

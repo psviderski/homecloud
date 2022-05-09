@@ -3,6 +3,7 @@ stages:
   rootfs.after:
     - name: "Layout configuration"
       if: '[ ! -f "/run/cos/recovery_mode" ]'
+      # cos-immutable-rootfs.service in initrd depends on this file.
       environment_file: /run/cos/cos-layout.env
       environment:
         VOLUMES: "LABEL=COS_PERSISTENT:/usr/local"
