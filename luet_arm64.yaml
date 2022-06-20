@@ -8,6 +8,6 @@ repositories:
     # cross-arch container image builds.
     enable: true
     # Pin the repository index instead of using latest.
-    reference: 20220505100219-repository.yaml
+    reference: e0ecf9ea0416e3beaa96d92a8c154eaaf86f7c92-repository.yaml  # 4 June 2022
     urls:
       - quay.io/costoolkit/releases-green-arm64
