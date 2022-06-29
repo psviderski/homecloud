@@ -76,6 +76,6 @@ RUN rc-update add dmesg sysinit \
     && rc-update add mount-ro shutdown
 
 # Enable elemental-toolkit services to run cloud-init stages.
-RUN rc-update add cos-setup-boot default \
+RUN rc-update add cos-setup-boot boot \
     && rc-update add cos-setup-network default \
     && rc-update add cos-setup-reconcile default

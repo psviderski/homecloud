@@ -1,0 +1,32 @@
+name: "Set up user defined cloud-config"
+stages:
+  # The initramfs stage runs before switching root. This exection runs chrooted into the target root after the immutable
+  # rootfs is set up and ready. It's a bit tricky that we can't easily use the earliest rootfs stage because at that
+  # stage the persistent volume is not configured and not mounted at /usr/local yet.
+  # The downside is that any configuration for the rootfs in user-defined config won't have any effect.
+  initramfs.before:
+    - name: "Move hcos-config.yaml from the boot partition to /usr/local/cloud-config"
+      if: '[ ! -f "/run/cos/recovery_mode" ]'
+      commands:
+        - |
+          set -e
+
+          # Use findfs because the busybox version of blkid doesn't support partition labels.
+          system_boot_dev=$(findfs LABEL=COS_GRUB || true)
+          if [ -z "$system_boot_dev" ]; then
+            echo "Skipping cloud-config installation from the COS_GRUB partition as it was not found."
+            exit
+          fi
+
+          system_boot_mnt=/tmp/hcos_boot
+          mkdir -p "$system_boot_mnt"
+          mount "$system_boot_dev" "$system_boot_mnt"
+          if [ -f "${system_boot_mnt}/hcos-config.yaml" ]; then
+            mkdir -p /usr/local/cloud-config
+            mv "${system_boot_mnt}/hcos-config.yaml" /usr/local/cloud-config/config.yaml
+            chmod 600 /usr/local/cloud-config/config.yaml
+            echo "hcos-config.yaml has been moved from the boot partition to /usr/local/cloud-config/config.yaml"
+          fi
+
+          umount "$system_boot_mnt"
+          rm -rf "$system_boot_mnt"

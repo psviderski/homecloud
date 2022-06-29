@@ -59,6 +59,8 @@ kernel-arm64:
         dracut \
         iproute2 \
         kernel-default \
+        # parted is used to partition a disk or expand partitions in the cloud-config rootfs stage.
+        parted \
         rsync \
         tar \
         wicked \
