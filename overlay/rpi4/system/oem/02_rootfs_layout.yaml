@@ -9,6 +9,8 @@ stages:
         VOLUMES: "LABEL=COS_PERSISTENT:/usr/local"
         OVERLAY: "tmpfs:10%"
         # These are writable ephemeral paths mounted using overlayfs.
+        # TODO: Upgrade to Alpine 3.16 and let openrc mount /tmp:
+        #  https://wiki.alpinelinux.org/wiki/Release_Notes_for_Alpine_3.16.0
         RW_PATHS: "/etc /srv /tmp /var"
         PERSISTENT_STATE_PATHS: >-
           /etc/cni
