@@ -7,9 +7,9 @@ stages:
       environment_file: /run/cos/cos-layout.env
       environment:
         VOLUMES: "LABEL=COS_PERSISTENT:/usr/local"
-        OVERLAY: "tmpfs:25%"
+        OVERLAY: "tmpfs:10%"
         # These are writable ephemeral paths mounted using overlayfs.
-        RW_PATHS: "/var /etc /srv"
+        RW_PATHS: "/etc /srv /tmp /var"
         PERSISTENT_STATE_PATHS: >-
           /etc/cni
           /etc/iscsi
