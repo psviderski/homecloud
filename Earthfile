@@ -57,6 +57,7 @@ kernel-arm64:
         curl \
         device-mapper \
         dracut \
+        e2fsprogs \
         iproute2 \
         kernel-default \
         # parted is used to partition a disk or expand partitions in the cloud-config rootfs stage.

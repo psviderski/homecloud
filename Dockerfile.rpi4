@@ -9,6 +9,10 @@ RUN apk --no-cache add \
     busybox-initscripts \
     ca-certificates \
     connman \
+    curl \
+    # During upgrades elemental needs to create, format, and relabel disk images.
+    e2fsprogs \
+    e2fsprogs-extra \
     eudev \
     # Unpredictable random number generator to remedy low-entropy conditions on headless systems.
     # TODO: test if really needed on RPi4 without any devices connected.
@@ -22,6 +26,12 @@ RUN apk --no-cache add \
     linux-firmware-cypress \
     openrc \
     openssh-server \
+    # TODO: temporary debug
+    strace \
+    tcpdump \
+    # A standard collection of Linux utilities to replace the stripped-down busybox ones and make the image more
+    # compatible with elemental-toolkit.
+    util-linux \
     wireless-regdb \
     # TODO: temporary use to troubleshoot wifi connections.
     wireless-tools \

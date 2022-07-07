@@ -11,8 +11,7 @@ stages:
         - |
           set -e
 
-          # Use findfs because the busybox version of blkid doesn't support partition labels.
-          system_boot_dev=$(findfs LABEL=COS_GRUB || true)
+          system_boot_dev=$(blkid -L COS_GRUB || true)
           if [ -z "$system_boot_dev" ]; then
             echo "Skipping cloud-config installation from the COS_GRUB partition as it was not found."
             exit
