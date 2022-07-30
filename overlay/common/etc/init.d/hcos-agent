@@ -1,0 +1,5 @@
+#!/sbin/openrc-run
+
+name="Home Cloud OS agent"
+command="/usr/sbin/hcos"
+command_args="agent"

@@ -1,0 +1,2 @@
+# Use iwd instead of wpa_supplicant for Wi-Fi as the connection seems to be more reliable.
+command_args="--wifi=iwd_agent --noplugin=vpn"

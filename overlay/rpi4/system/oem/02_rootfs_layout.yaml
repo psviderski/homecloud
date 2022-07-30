@@ -26,6 +26,7 @@ stages:
           /var/lib/kubelet
           /var/lib/longhorn
           /var/lib/rancher
+          /var/lib/tailscale
           /var/log
         # Bind mount the persistent state paths (instead of using overlayfs) after mirroring the original content.
         PERSISTENT_STATE_BIND: "true"

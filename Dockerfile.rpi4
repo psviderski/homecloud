@@ -18,6 +18,8 @@ RUN apk --no-cache add \
     # TODO: test if really needed on RPi4 without any devices connected.
     haveged \
     htop \
+    # Wireless daemon to manage WiFi connections instead of wpa_supplicant.
+    iwd \
     # Replaces the busybox utils for managing kernel modules to load zsdt compressed modules coming from openSUSE.
     kmod \
     # Drivers for the built-in WiFi module on Raspberry Pi. Many legacy linux-firmware-brcm files are symlinked to
@@ -34,12 +36,13 @@ RUN apk --no-cache add \
     util-linux \
     wireless-regdb \
     # TODO: temporary use to troubleshoot wifi connections.
-    wireless-tools \
-    wpa_supplicant \
-    zerotier-one \
-    zerotier-one-openrc
+    wireless-tools
 # TODO: add more packages as needed, see https://github.com/rancher/k3os/blob/master/images/00-base/Dockerfile and
 #  https://github.com/c3os-io/c3os/blob/master/Dockerfile.alpine
+# Install latest packages from the edge branch.
+RUN apk --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community add \
+    tailscale==1.28.0-r1 \
+    tailscale-openrc==1.28.0-r1
 
 # Copy luet binary from the official image.
 COPY --from=luet /usr/bin/luet /usr/bin/luet
@@ -75,16 +78,17 @@ RUN rc-update add dmesg sysinit \
     # boot runlevel.
     && rc-update add bootmisc boot \
     && rc-update add haveged boot \
+    && rc-update add hcos-agent boot \
     && rc-update add swclock boot \
     && rc-update add syslog boot \
     # default runlevel.
-    # TODO: configure connman to use iwd instead of wpa_supplicant: https://wiki.archlinux.org/title/ConnMan
     && rc-update add connman default \
+    && rc-update add iwd default \
     && rc-update add sshd default \
+    && rc-update add tailscale default \
     # shutdown runlevel.
     && rc-update add killprocs shutdown \
     && rc-update add mount-ro shutdown
-
 # Enable elemental-toolkit services to run cloud-init stages.
 RUN rc-update add cos-setup-boot boot \
     && rc-update add cos-setup-network default \

@@ -4,7 +4,7 @@ RUN apk add --no-cache \
     curl
 
 ubuntu-builder:
-    FROM ubuntu:20.04@sha256:b2339eee806d44d6a8adc0a790f824fb71f03366dd754d400316ae5a7e3ece3e
+    FROM ubuntu:20.04
     # Speed up package download in Australia.
     RUN sed -i s/archive.ubuntu/au.archive.ubuntu/ /etc/apt/sources.list
     RUN apt-get update
@@ -93,6 +93,7 @@ rpi4-firmware:
 rpi4-elemental-image:
     FROM DOCKERFILE -f Dockerfile.rpi4 .
     COPY --dir +kernel-arm64/* /
+    COPY +hcos-linux-arm64/hcos /usr/sbin/hcos
     COPY +u-boot/u-boot.bin /.system-boot/
     COPY --dir +rpi4-firmware/boot/* /.system-boot/
     SAVE IMAGE hcos-rpi4:latest
@@ -120,3 +121,31 @@ rpi4-image:
         RUN --privileged ./build_image_rpi4.sh --docker-image hcos-rpi4:latest hcos-rpi4.img
     END
     SAVE ARTIFACT hcos-rpi4.img* AS LOCAL ./build/
+
+go-deps:
+    FROM golang:1.18.4-alpine3.16
+    WORKDIR /build
+    COPY go.mod go.sum ./
+    RUN go mod download && go mod verify
+    SAVE ARTIFACT go.mod AS LOCAL go.mod
+    SAVE ARTIFACT go.sum AS LOCAL go.sum
+
+hcos:
+    FROM +go-deps
+    ARG --required GOARCH
+    ARG --required GOOS
+    COPY --dir cmd internal pkg ./
+    RUN go build -o hcos ./cmd/hcos/main.go
+    SAVE ARTIFACT hcos
+
+hcos-darwin-arm64:
+    COPY (+hcos/hcos --GOARCH=arm64 --GOOS=darwin) .
+    SAVE ARTIFACT hcos AS LOCAL ./build/hcos-darwin-arm64
+
+hcos-linux-arm64:
+    COPY (+hcos/hcos --GOARCH=arm64 --GOOS=linux) .
+    SAVE ARTIFACT hcos AS LOCAL ./build/hcos-linux-arm64
+
+hcos-linux-amd64:
+    COPY (+hcos/hcos --GOARCH=amd64 --GOOS=linux) .
+    SAVE ARTIFACT hcos AS LOCAL ./build/hcos-linux-amd64
