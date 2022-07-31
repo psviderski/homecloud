@@ -3,6 +3,8 @@ package agent
 import (
 	"errors"
 	"fmt"
+	"github.com/psviderski/homecloud-os/internal/system"
+	"github.com/psviderski/homecloud-os/internal/tailscale"
 	"github.com/psviderski/homecloud-os/pkg/config"
 	"os"
 	"path"
@@ -14,13 +16,16 @@ const (
 )
 
 func ApplyConfig(cfg config.Config, root string) error {
-	if cfg.Network != (config.NetworkConfig{}) {
-		return applyNetworkConfig(cfg.Network, root)
+	if err := applyNetwork(cfg.Network, root); err != nil {
+		return err
+	}
+	if err := applyK3s(cfg.K3s); err != nil {
+		return err
 	}
 	return nil
 }
 
-func applyNetworkConfig(cfg config.NetworkConfig, root string) error {
+func applyNetwork(cfg config.NetworkConfig, root string) error {
 	if err := os.MkdirAll(path.Join(root, connManConfigDir), 0755); err != nil {
 		return fmt.Errorf("failed to create directory %q: %v", connManConfigDir, err)
 	}
@@ -36,13 +41,19 @@ AllowHostnameUpdates=false
 		return fmt.Errorf("unable to write ConnMan config %q: %w", mainPath, err)
 	}
 
-	if cfg.Wifi != (config.WifiConfig{}) {
-		return applyWifiConfig(cfg.Wifi, root)
+	if err := applyWifi(cfg.Wifi, root); err != nil {
+		return err
+	}
+	if err := applyTailscale(cfg.Tailscale); err != nil {
+		return err
 	}
 	return nil
 }
 
-func applyWifiConfig(cfg config.WifiConfig, root string) error {
+func applyWifi(cfg config.WifiConfig, root string) error {
+	if cfg.Name == "" && cfg.Password == "" {
+		return nil
+	}
 	if cfg.Name == "" {
 
 		return errors.New("wifi network name is required")
@@ -66,6 +77,48 @@ Passphrase=%s
 `, cfg.Name, cfg.Password)
 	if err := os.WriteFile(servicePath, []byte(serviceContent), 0600); err != nil {
 		return fmt.Errorf("unable to write ConnMan config %q: %w", servicePath, err)
+	}
+	return nil
+}
+
+func applyTailscale(cfg config.TailscaleConfig) error {
+	if cfg.AuthKey == "" {
+		return fmt.Errorf("Tailscale auth key is required")
+	}
+	tailscale.WaitDaemon()
+	configured, err := tailscale.IsConfigured()
+	if err != nil {
+		return err
+	}
+	if configured {
+		fmt.Println("Tailscale is already configured, skipping.")
+		return nil
+	}
+
+	system.WaitNetwork()
+	fmt.Println("Connecting to Tailscale...")
+	authorized, err := tailscale.Up(cfg.AuthKey)
+	if err != nil {
+		return fmt.Errorf("unable to connect to Tailscale: %w", err)
+	}
+	ip, err := tailscale.WaitIP()
+	if err != nil {
+		return fmt.Errorf("unable to get Tailscale IP: %w", err)
+	}
+	if authorized {
+		fmt.Printf("Tailscale is connected. Machine IP: %s\n", ip)
+	} else {
+		fmt.Printf("Tailscale is connected but machine is not yet authorized by tailnet admin. "+
+			"To authorize your machine, visit (as admin): https://login.tailscale.com/admin/machines. "+
+			"Machine IP: %s\n", ip)
+	}
+	return nil
+}
+
+func applyK3s(cfg config.K3sConfig) error {
+	_, err := tailscale.WaitIP()
+	if err != nil {
+		return fmt.Errorf("unable to get Tailscale IP: %w", err)
 	}
 	return nil
 }

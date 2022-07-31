@@ -17,14 +17,14 @@ func NewCommand() *cobra.Command {
 		Use:   "agent",
 		Short: "Run OS agent",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runCommand(opts)
+			return runAgent(opts)
 		},
 	}
 	cmd.Flags().StringVarP(&opts.config, "config", "c", config.DefaultConfigPath, "Config path")
 	return cmd
 }
 
-func runCommand(opts Options) error {
+func runAgent(opts Options) error {
 	cfg, err := config.ReadConfig(opts.config)
 	if err != nil {
 		return err

@@ -15,7 +15,7 @@ type Config struct {
 	Password          string
 	SSHAuthorizedKeys []string `yaml:"ssh_authorized_keys"`
 	Network           NetworkConfig
-	K3S               K3SConfig
+	K3s               K3sConfig
 }
 
 type NetworkConfig struct {
@@ -35,7 +35,7 @@ type TailscaleConfig struct {
 	AuthKey string `yaml:"auth_key"`
 }
 
-type K3SConfig struct {
+type K3sConfig struct {
 	Role  string
 	Token string
 }
