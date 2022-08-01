@@ -1,5 +1,12 @@
 #!/sbin/openrc-run
 
 name="Home Cloud OS agent"
+
+logfile="/var/log/${RC_SVCNAME}.log"
+
 command="/usr/sbin/hcos"
 command_args="agent"
+command_background="yes"
+pidfile="/run/${RC_SVCNAME}.pid"
+output_log=${logfile}
+error_log=${logfile}
