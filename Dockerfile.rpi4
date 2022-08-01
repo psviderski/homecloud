@@ -85,7 +85,7 @@ RUN rc-update add dmesg sysinit \
     && rc-update add connman default \
     && rc-update add iwd default \
     && rc-update add sshd default \
-    #&& rc-update add tailscale default \
+    && rc-update add tailscale default \
     # shutdown runlevel.
     && rc-update add killprocs shutdown \
     && rc-update add mount-ro shutdown

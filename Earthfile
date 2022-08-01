@@ -92,6 +92,12 @@ rpi4-firmware:
 
 rpi4-elemental-image:
     FROM DOCKERFILE -f Dockerfile.rpi4 .
+    # Patch elemental-toolkit services to redirect their output to logfiles.
+    FOR service IN cos-setup-boot cos-setup-network
+        RUN printf '\n\nlogfile="/var/log/${RC_SVCNAME}.log"\n' >> /etc/init.d/$service \
+            && printf 'output_log=${logfile}\n' >> /etc/init.d/$service \
+            && printf 'error_log=${logfile}\n' >> /etc/init.d/$service
+    END
     COPY --dir +kernel-arm64/* /
     COPY +hcos-linux-arm64/hcos /usr/sbin/hcos
     COPY +u-boot/u-boot.bin /.system-boot/
