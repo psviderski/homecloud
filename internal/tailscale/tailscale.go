@@ -18,7 +18,7 @@ func WaitDaemon() {
 		st, err := localClient.Status(context.Background())
 		if err != nil {
 			fmt.Printf("Waiting for tailscaled... %s\n", err)
-		} else if isTailscaledStarted(st) {
+		} else if isDaemonStarted(st) {
 			return
 		} else {
 			fmt.Printf("Waiting for tailscaled... state: %s\n", st.BackendState)
@@ -27,7 +27,7 @@ func WaitDaemon() {
 	}
 }
 
-func isTailscaledStarted(st *ipnstate.Status) bool {
+func isDaemonStarted(st *ipnstate.Status) bool {
 	switch st.BackendState {
 	case ipn.NeedsLogin.String(), ipn.NeedsMachineAuth.String(), ipn.Running.String(), ipn.Stopped.String():
 		return true
