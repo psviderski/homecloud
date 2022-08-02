@@ -47,7 +47,7 @@ func IsConfigured() (bool, error) {
 	return false, nil
 }
 
-// Up connects to Tailscale and returns if the machine is already authorized or requires manual authorization.
+// Up connects to Tailscale and returns whether the machine is already authorized or requires manual authorization.
 func Up(authKey string) (bool, error) {
 	cmd := exec.Command("tailscale", "up", "--auth-key", authKey, "--ssh", "--timeout", "10s")
 	out, err := cmd.CombinedOutput()
