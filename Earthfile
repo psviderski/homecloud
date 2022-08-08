@@ -92,6 +92,17 @@ rpi4-firmware:
 
 rpi4-elemental-image:
     FROM DOCKERFILE -f Dockerfile.rpi4 .
+    ARG K3S_VERSION=v1.24.3+k3s1
+
+    # Install k3s.
+    RUN curl -fsSL "https://raw.githubusercontent.com/k3s-io/k3s/${K3S_VERSION}/install.sh" | \
+        INSTALL_K3S_BIN_DIR="/usr/sbin" \
+        INSTALL_K3S_EXEC="" \
+        INSTALL_K3S_SKIP_ENABLE="true" \
+        INSTALL_K3S_VERSION="${K3S_VERSION}" \
+        sh - \
+        && echo -e '# This file will be overwritten by hcos-agent.\ncommand_args=""' > /etc/rancher/k3s/k3s.env \
+        && rm /usr/sbin/k3s-killall.sh /usr/sbin/k3s-uninstall.sh
     # Patch elemental-toolkit services to redirect their output to logfiles.
     FOR stage IN boot network
         RUN sed -i \

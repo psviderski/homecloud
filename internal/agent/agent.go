@@ -3,16 +3,20 @@ package agent
 import (
 	"errors"
 	"fmt"
+	"github.com/joho/godotenv"
 	"github.com/psviderski/homecloud-os/internal/system"
 	"github.com/psviderski/homecloud-os/internal/tailscale"
 	"github.com/psviderski/homecloud-os/pkg/config"
 	"os"
 	"path"
+	"strconv"
+	"strings"
 )
 
 const (
 	connManConfigDir  = "/etc/connman"
 	connManServiceDir = "/var/lib/connman"
+	k3sEnvFile        = "/etc/rancher/k3s/k3s.env"
 )
 
 func ApplyConfig(cfg config.Config, root string) error {
@@ -116,9 +120,42 @@ func applyTailscale(cfg config.TailscaleConfig) error {
 }
 
 func applyK3s(cfg config.K3sConfig) error {
-	_, err := tailscale.WaitIP()
-	if err != nil {
-		return fmt.Errorf("unable to get Tailscale IP: %w", err)
+	switch cfg.Role {
+	case config.ClusterInitRole, config.ControlPlaneRole, config.WorkerRole:
+	default:
+		return fmt.Errorf("k3s role must be one of: %s, %s, %s",
+			config.ClusterInitRole, config.ControlPlaneRole, config.WorkerRole)
 	}
+	if cfg.Token == "" {
+		return fmt.Errorf("k3s token is required")
+	}
+	tsIP, err := tailscale.WaitIP()
+	if err != nil {
+		return fmt.Errorf("failed while waiting for Tailscale IP: %w", err)
+	}
+
+	env := map[string]string{
+		"K3S_TOKEN": cfg.Token,
+	}
+	cmd := "server"
+	if cfg.Role == config.WorkerRole {
+		cmd = "agent"
+	}
+	args := []string{
+		cmd,
+		"--bind-address", strconv.Quote(tsIP),
+		"--flannel-iface", "tailscale0",
+	}
+	switch cfg.Role {
+	case config.ClusterInitRole:
+		env["K3S_CLUSTER_INIT"] = "true"
+	default:
+		return fmt.Errorf("k3s role not implemented yet: %s", cfg.Role)
+	}
+	env["command_args"] = strings.Join(args, " ")
+	if err := godotenv.Write(env, k3sEnvFile); err != nil {
+		return fmt.Errorf("failed to write k3s environment file %s: %w", k3sEnvFile, err)
+	}
+	// TODO: start k3s service.
 	return nil
 }

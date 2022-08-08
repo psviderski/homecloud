@@ -8,7 +8,13 @@ import (
 
 const (
 	DefaultConfigPath = "/usr/local/cloud-config/config.yaml"
+
+	ClusterInitRole  K3sRole = "cluster-init"
+	ControlPlaneRole K3sRole = "control-plane"
+	WorkerRole       K3sRole = "worker"
 )
+
+type K3sRole string
 
 type Config struct {
 	Hostname          string
@@ -36,8 +42,9 @@ type TailscaleConfig struct {
 }
 
 type K3sConfig struct {
-	Role  string
-	Token string
+	Role   K3sRole
+	Server string
+	Token  string
 }
 
 func ReadConfig(path string) (Config, error) {

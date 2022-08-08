@@ -3,6 +3,7 @@ module github.com/psviderski/homecloud-os
 go 1.18
 
 require (
+	github.com/joho/godotenv v1.4.0
 	github.com/spf13/cobra v1.5.0
 	gopkg.in/yaml.v3 v3.0.1
 	tailscale.com v1.28.0

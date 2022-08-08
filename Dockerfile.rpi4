@@ -93,3 +93,5 @@ RUN rc-update add dmesg sysinit \
 RUN rc-update add cos-setup-boot boot \
     && rc-update add cos-setup-network default \
     && rc-update add cos-setup-reconcile default
+
+# TODO: install and enable logrotate.
