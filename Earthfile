@@ -4,7 +4,7 @@ RUN apk add --no-cache \
     curl
 
 ubuntu-builder:
-    FROM ubuntu:20.04
+    FROM ubuntu:20.04@sha256:af5efa9c28de78b754777af9b4d850112cad01899a5d37d2617bb94dc63a49aa
     # Speed up package download in Australia.
     RUN sed -i s/archive.ubuntu/au.archive.ubuntu/ /etc/apt/sources.list
     RUN apt-get update
