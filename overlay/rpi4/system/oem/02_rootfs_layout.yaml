@@ -35,6 +35,7 @@ stages:
       environment:
         VOLUMES: ""
         OVERLAY: "tmpfs:25%"
+  boot.before:
     - name: Mount /tmp as tmpfs (memory)
       commands:
         - mount -t tmpfs -o nodev,nosuid,mode=1777,size=10% tmpfs /tmp
