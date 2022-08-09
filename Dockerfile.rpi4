@@ -4,7 +4,7 @@ ARG LUET_VERSION=0.30.3
 # to explicitly enable the arm64 repository.
 FROM quay.io/luet/base:$LUET_VERSION AS luet
 
-FROM --platform=linux/arm64 alpine:3.15.2
+FROM --platform=linux/arm64 alpine:3.16.1
 RUN apk --no-cache add \
     busybox-initscripts \
     ca-certificates \
@@ -41,8 +41,8 @@ RUN apk --no-cache add \
 #  https://github.com/c3os-io/c3os/blob/master/Dockerfile.alpine
 # Install latest packages from the edge branch.
 RUN apk --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community add \
-    tailscale==1.28.0-r1 \
-    tailscale-openrc==1.28.0-r1
+    tailscale==1.28.0-r2 \
+    tailscale-openrc==1.28.0-r2
 
 # Copy luet binary from the official image.
 COPY --from=luet /usr/bin/luet /usr/bin/luet
