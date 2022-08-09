@@ -76,7 +76,6 @@ RUN rc-update add dmesg sysinit \
     && rc-update add udev sysinit \
     && rc-update add udev-trigger sysinit \
     # boot runlevel.
-    && rc-update add bootmisc boot \
     && rc-update add haveged boot \
     && rc-update add hcos-agent boot \
     && rc-update add swclock boot \
