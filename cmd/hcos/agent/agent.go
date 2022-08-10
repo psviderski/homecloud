@@ -25,12 +25,8 @@ func NewCommand() *cobra.Command {
 }
 
 func runAgent(opts Options) error {
-	cfg, err := config.ReadConfig(opts.config)
-	if err != nil {
-		return err
-	}
-	if err := agent.ApplyConfig(cfg, "/"); err != nil {
-		return fmt.Errorf("unable to apply Home Cloud OS config (%s): %w", opts.config, err)
+	if err := agent.StartAgent(opts.config); err != nil {
+		return fmt.Errorf("unable to start Home Cloud OS agent: %w", err)
 	}
 	return nil
 }

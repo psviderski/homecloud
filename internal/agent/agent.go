@@ -156,6 +156,20 @@ func applyK3s(cfg config.K3sConfig) error {
 	if err := godotenv.Write(env, k3sEnvFile); err != nil {
 		return fmt.Errorf("failed to write k3s environment file %s: %w", k3sEnvFile, err)
 	}
-	// TODO: start k3s service.
+	return nil
+}
+
+func StartAgent(cfgPath string) error {
+	cfg, err := config.ReadConfig(cfgPath)
+	if err != nil {
+		return err
+	}
+	if err := ApplyConfig(cfg, "/"); err != nil {
+		return fmt.Errorf("unable to apply config file %q: %w", cfgPath, err)
+	}
+	if err := system.StartService("k3s"); err != nil {
+		return err
+	}
+	fmt.Println("Started service k3s.")
 	return nil
 }
