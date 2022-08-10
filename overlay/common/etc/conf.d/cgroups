@@ -1,0 +1,2 @@
+# Make the cgroups service script a no-op as cgroups are already set up by systemd in initrd before switching to OpenRC.
+rc_cgroup_mode="ignore"
