@@ -20,6 +20,9 @@ const (
 )
 
 func ApplyConfig(cfg config.Config, root string) error {
+	if err := applyHostname(cfg.Hostname); err != nil {
+		return err
+	}
 	if err := applyNetwork(cfg.Network, root); err != nil {
 		return err
 	}
@@ -27,6 +30,11 @@ func ApplyConfig(cfg config.Config, root string) error {
 		return err
 	}
 	return nil
+}
+
+func applyHostname(hostname string) error {
+	// TODO: trim hostname and validate it contains correct chars
+	return system.SetHostname(hostname)
 }
 
 func applyNetwork(cfg config.NetworkConfig, root string) error {
