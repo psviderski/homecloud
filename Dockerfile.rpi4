@@ -18,8 +18,6 @@ RUN apk --no-cache add \
     # TODO: test if really needed on RPi4 without any devices connected.
     haveged \
     htop \
-    # Wireless daemon to manage WiFi connections instead of wpa_supplicant.
-    iwd \
     # Replaces the busybox utils for managing kernel modules to load zsdt compressed modules coming from openSUSE.
     kmod \
     # Drivers for the built-in WiFi module on Raspberry Pi. Many legacy linux-firmware-brcm files are symlinked to
@@ -36,7 +34,9 @@ RUN apk --no-cache add \
     util-linux \
     wireless-regdb \
     # TODO: temporary use to troubleshoot wifi connections.
-    wireless-tools
+    wireless-tools \
+    # Wireless daemon that is controlled by connman to establish WiFi connections.
+    wpa_supplicant
 # TODO: add more packages as needed, see https://github.com/rancher/k3os/blob/master/images/00-base/Dockerfile and
 #  https://github.com/c3os-io/c3os/blob/master/Dockerfile.alpine
 # Install latest packages from the edge branch.
@@ -82,7 +82,6 @@ RUN rc-update add dmesg sysinit \
     && rc-update add syslog boot \
     # default runlevel.
     && rc-update add connman default \
-    && rc-update add iwd default \
     && rc-update add sshd default \
     && rc-update add tailscale default \
     # shutdown runlevel.
