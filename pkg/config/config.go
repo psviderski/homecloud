@@ -25,9 +25,6 @@ type Config struct {
 }
 
 type NetworkConfig struct {
-	// TODO: set hostname using https://github.com/mudler/yip/blob/1d415391cc37e353facdbc7e5beb22024ca818ba/pkg/plugins/hostname.go
-	//  or https://github.com/rancher/k3os/blob/master/pkg/hostname/hostname.go
-	//  https://wiki.alpinelinux.org/wiki/Configure_Networking
 	Wifi      WifiConfig
 	Tailscale TailscaleConfig
 }

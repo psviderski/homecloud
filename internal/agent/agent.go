@@ -17,9 +17,14 @@ const (
 	connManConfigDir  = "/etc/connman"
 	connManServiceDir = "/var/lib/connman"
 	k3sEnvFile        = "/etc/rancher/k3s/k3s.env"
+
+	loginUsername = "hcos"
 )
 
 func ApplyConfig(cfg config.Config, root string) error {
+	if err := applyPassword(cfg.Password); err != nil {
+		return err
+	}
 	if err := applyHostname(cfg.Hostname); err != nil {
 		return err
 	}
@@ -32,9 +37,17 @@ func ApplyConfig(cfg config.Config, root string) error {
 	return nil
 }
 
+func applyPassword(password string) error {
+	password = strings.TrimSpace(password)
+	if password != "" {
+		return system.SetPassword(loginUsername, password)
+	}
+	return nil
+}
+
 func applyHostname(hostname string) error {
-	// TODO: trim hostname and validate it contains correct chars
-	return system.SetHostname(hostname)
+	// TODO: validate hostname contains correct chars
+	return system.SetHostname(strings.TrimSpace(hostname))
 }
 
 func applyNetwork(cfg config.NetworkConfig, root string) error {
