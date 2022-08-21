@@ -10,6 +10,9 @@ RUN apk --no-cache add \
     ca-certificates \
     connman \
     curl \
+    # Use doas instead of sudo to run commands as another user on the system.
+    doas \
+    doas-sudo-shim \
     # During upgrades elemental needs to create, format, and relabel disk images.
     e2fsprogs \
     e2fsprogs-extra \

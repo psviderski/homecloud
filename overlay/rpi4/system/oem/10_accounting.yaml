@@ -3,9 +3,6 @@ stages:
   initramfs:
     - name: "Create hcos user with default password"
       users:
-        # TODO: install sudo and configure with nopasswd.
-        hcos:
-          passwd: hcos
         # TODO: do not set password for the root user. This is temporary for easy troubleshooting.
         root:
           passwd: hcos
