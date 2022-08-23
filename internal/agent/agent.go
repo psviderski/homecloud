@@ -18,7 +18,7 @@ const (
 	connManServiceDir = "/var/lib/connman"
 	k3sEnvFile        = "/etc/rancher/k3s/k3s.env"
 
-	loginUsername = "hcos"
+	loginUsername = "hc"
 )
 
 func ApplyConfig(cfg config.Config, root string) error {

@@ -103,9 +103,9 @@ rpi4-elemental-image:
         sh - \
         && echo -e '# This file will be overwritten by hcos-agent.\ncommand_args=""' > /etc/rancher/k3s/k3s.env \
         && rm /usr/sbin/k3s-killall.sh /usr/sbin/k3s-uninstall.sh
-    # Create default hcos user.
-    RUN adduser --uid 2000 --disabled-password --gecos hcos hcos \
-        && adduser hcos wheel
+    # Create the default Home Cloud user "hc".
+    RUN adduser --uid 2000 --disabled-password --gecos "Home Cloud user" hc \
+        && adduser hc wheel
 
     # Patch elemental-toolkit services to redirect their output to logfiles.
     FOR stage IN boot network
