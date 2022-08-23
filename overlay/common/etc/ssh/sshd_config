@@ -1,9 +1,8 @@
 # See https://man.openbsd.org/sshd_config for details on these and other parameters and their defaults.
 
 AllowTcpForwarding      no
-# TODO: change to "no" once cloud-config is set up to configure ssh_authorized_keys.
+# Allow remote access for a non-root user using a password if authorized keys are not set.
 PasswordAuthentication  yes
-# TODO: change to "no" once sudo is set up for the default hcos user.
-PermitRootLogin         yes
+PermitRootLogin         no
 
 Subsystem   sftp    internal-sftp
