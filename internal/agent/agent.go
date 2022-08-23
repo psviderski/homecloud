@@ -25,6 +25,9 @@ func ApplyConfig(cfg config.Config, root string) error {
 	if err := applyPassword(cfg.Password); err != nil {
 		return err
 	}
+	if err := applySSHAuthorizedKeys(cfg.SSHAuthorizedKeys); err != nil {
+		return err
+	}
 	if err := applyHostname(cfg.Hostname); err != nil {
 		return err
 	}
@@ -43,6 +46,11 @@ func applyPassword(password string) error {
 		return system.SetPassword(loginUsername, password)
 	}
 	return nil
+}
+
+func applySSHAuthorizedKeys(keys []string) error {
+	// Note that applying an empty list of keys is a valid use case, for example to delete previously added keys.
+	return system.SetAuthorizedKeys(loginUsername, keys)
 }
 
 func applyHostname(hostname string) error {
