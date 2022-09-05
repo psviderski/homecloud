@@ -3,23 +3,34 @@ package agent
 import (
 	"errors"
 	"fmt"
-	"github.com/joho/godotenv"
 	"github.com/psviderski/homecloud-os/internal/system"
 	"github.com/psviderski/homecloud-os/internal/tailscale"
 	"github.com/psviderski/homecloud-os/pkg/config"
+	"gopkg.in/yaml.v3"
 	"os"
 	"path"
-	"strconv"
 	"strings"
 )
 
 const (
 	connManConfigDir  = "/etc/connman"
 	connManServiceDir = "/var/lib/connman"
-	k3sEnvFile        = "/etc/rancher/k3s/k3s.env"
+	k3sEnvFilePath    = "/etc/rancher/k3s/k3s.env"
+	k3sConfigPath     = "/etc/rancher/k3s/config.yaml"
 
 	loginUsername = "hc"
 )
+
+// K3sConfig stores configuration parameters for K3s server or agent. It is intended to be serialized as YAML to a file
+// that is used by K3s to load configuration from (default: /etc/rancher/k3s/config.yaml). See for more details about
+// K3s configuration file: https://rancher.com/docs/k3s/latest/en/installation/install-options/#configuration-file
+type K3sConfig struct {
+	ClusterInit  bool   `yaml:"cluster-init,omitempty"`
+	Server       string `yaml:"server,omitempty"`
+	Token        string `yaml:"token"`
+	BindAddress  string `yaml:"bind-address,omitempty"`
+	FlannelIface string `yaml:"flannel-iface"`
+}
 
 func ApplyConfig(cfg config.Config, root string) error {
 	if err := applyPassword(cfg.Password); err != nil {
@@ -158,32 +169,48 @@ func applyK3s(cfg config.K3sConfig) error {
 	if cfg.Token == "" {
 		return fmt.Errorf("k3s token is required")
 	}
+	// Tailscale overlay network is mandatory for now.
 	tsIP, err := tailscale.WaitIP()
 	if err != nil {
 		return fmt.Errorf("failed while waiting for Tailscale IP: %w", err)
 	}
 
-	env := map[string]string{
-		"K3S_TOKEN": cfg.Token,
+	k3sCfg := K3sConfig{
+		Token:        cfg.Token,
+		FlannelIface: "tailscale0",
 	}
 	cmd := "server"
-	if cfg.Role == config.WorkerRole {
-		cmd = "agent"
-	}
-	args := []string{
-		cmd,
-		"--bind-address", strconv.Quote(tsIP),
-		"--flannel-iface", "tailscale0",
-	}
 	switch cfg.Role {
 	case config.ClusterInitRole:
-		env["K3S_CLUSTER_INIT"] = "true"
+		k3sCfg.ClusterInit = true
+		k3sCfg.BindAddress = tsIP
+	case config.ControlPlaneRole:
+		if cfg.Server == "" {
+			return fmt.Errorf("k3s server to join is required")
+		}
+		k3sCfg.Server = cfg.Server
+		k3sCfg.BindAddress = tsIP
+	case config.WorkerRole:
+		cmd = "agent"
+		if cfg.Server == "" {
+			return fmt.Errorf("k3s server to join is required")
+		}
+		k3sCfg.Server = cfg.Server
 	default:
-		return fmt.Errorf("k3s role not implemented yet: %s", cfg.Role)
+		return fmt.Errorf("k3s role is invalid, must be one of: %s, %s, %s",
+			config.ClusterInitRole, config.ControlPlaneRole, config.WorkerRole)
 	}
-	env["command_args"] = strings.Join(args, " ")
-	if err := godotenv.Write(env, k3sEnvFile); err != nil {
-		return fmt.Errorf("failed to write k3s environment file %s: %w", k3sEnvFile, err)
+	k3sCfgYAML, err := yaml.Marshal(&k3sCfg)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(k3sConfigPath, k3sCfgYAML, 0600); err != nil {
+		return fmt.Errorf("failed to write k3s config %s: %w", k3sConfigPath, err)
+	}
+	// Override the default command_args in the /etc/init.d/k3s service script.
+	env := fmt.Sprintf("command_args=\"%s\"\n", cmd)
+	if err := os.WriteFile(k3sEnvFilePath, []byte(env), 0600); err != nil {
+		return fmt.Errorf("failed to write k3s environment file %s: %w", k3sEnvFilePath, err)
 	}
 	return nil
 }
