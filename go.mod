@@ -3,6 +3,7 @@ module github.com/psviderski/homecloud
 go 1.18
 
 require (
+	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/cobra v1.5.0
 	gopkg.in/yaml.v3 v3.0.1
 	tailscale.com v1.28.0
@@ -17,7 +18,6 @@ require (
 	github.com/jsimonetti/rtnetlink v1.1.2-0.20220408201609-d380b505068b // indirect
 	github.com/mdlayher/netlink v1.6.0 // indirect
 	github.com/mdlayher/socket v0.2.3 // indirect
-	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-ps v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	go4.org/intern v0.0.0-20211027215823-ae77deb06f29 // indirect

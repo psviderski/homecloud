@@ -171,3 +171,15 @@ hcos-linux-arm64:
 hcos-linux-amd64:
     COPY (+hcos/hcos --GOARCH=amd64 --GOOS=linux) .
     SAVE ARTIFACT hcos AS LOCAL ./build/hcos-linux-amd64
+
+hc:
+    FROM +go-deps
+    ARG --required GOARCH
+    ARG --required GOOS
+    COPY --dir cmd internal pkg ./
+    RUN go build -o hc ./cmd/hc/main.go
+    SAVE ARTIFACT hc
+
+hc-darwin-arm64:
+    COPY (+hc/hc --GOARCH=arm64 --GOOS=darwin) .
+    SAVE ARTIFACT hc AS LOCAL ./build/hc-darwin-arm64
