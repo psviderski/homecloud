@@ -3,9 +3,9 @@ package agent
 import (
 	"errors"
 	"fmt"
-	"github.com/psviderski/homecloud-os/internal/system"
-	"github.com/psviderski/homecloud-os/internal/tailscale"
-	"github.com/psviderski/homecloud-os/pkg/config"
+	"github.com/psviderski/homecloud/internal/system"
+	"github.com/psviderski/homecloud/internal/tailscale"
+	"github.com/psviderski/homecloud/pkg/os/config"
 	"gopkg.in/yaml.v3"
 	"os"
 	"path"

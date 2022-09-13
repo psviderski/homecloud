@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/psviderski/homecloud-os/cmd/hcos/agent"
+	"github.com/psviderski/homecloud/cmd/hcos/agent"
 	"github.com/spf13/cobra"
 )
 

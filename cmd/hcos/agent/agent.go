@@ -2,8 +2,8 @@ package agent
 
 import (
 	"fmt"
-	"github.com/psviderski/homecloud-os/internal/agent"
-	"github.com/psviderski/homecloud-os/pkg/config"
+	"github.com/psviderski/homecloud/internal/agent"
+	"github.com/psviderski/homecloud/pkg/os/config"
 	"github.com/spf13/cobra"
 )
 
