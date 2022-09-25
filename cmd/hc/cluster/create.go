@@ -3,8 +3,7 @@ package cluster
 import (
 	"fmt"
 	"github.com/mitchellh/go-homedir"
-	"github.com/psviderski/homecloud/internal/cluster"
-	"github.com/psviderski/homecloud/pkg/config"
+	"github.com/psviderski/homecloud/internal/client"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -14,17 +13,22 @@ type createOptions struct {
 	sshKey string
 }
 
-func NewCreateCommand() *cobra.Command {
+func NewCreateCommand(c *client.Client) *cobra.Command {
 	opts := createOptions{}
 	cmd := &cobra.Command{
-		Use:   "create",
+		Use:   "create [NAME]",
 		Short: "Create a new Kubernetes cluster",
+		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// TODO: generate a unique name for the cluster if not provided.
-			return create(opts)
+			if len(args) > 0 {
+				opts.name = args[0]
+			} else {
+				// TODO: generate a unique name for the cluster if not provided.
+				opts.name = "homecloud"
+			}
+			return create(c, opts)
 		},
 	}
-	cmd.Flags().StringVar(&opts.name, "name", "homecloud", "Assign a name to the cluster")
 	// TODO: generate a new private key for the cluster if ssh-key is not specified.
 	//  https://stackoverflow.com/questions/71850135/generate-ed25519-key-pair-compatible-with-openssh
 	//  https://gist.github.com/goliatone/e9c13e5f046e34cef6e150d06f20a34c
@@ -33,7 +37,7 @@ func NewCreateCommand() *cobra.Command {
 	return cmd
 }
 
-func create(opts createOptions) error {
+func create(c *client.Client, opts createOptions) error {
 	sshKey := ""
 	if opts.sshKey != "" {
 		path, err := homedir.Expand(opts.sshKey)
@@ -46,16 +50,11 @@ func create(opts createOptions) error {
 		}
 		sshKey = string(data)
 	}
-	cfg, err := config.LoadOrCreate("")
-	if err != nil {
-		return fmt.Errorf("cannot load config: %w", err)
-	}
-	c, err := cluster.Create(opts.name, sshKey)
+	cluster, err := c.CreateCluster(opts.name, sshKey)
 	if err != nil {
 		return err
 	}
 	// TODO: use color or font highlighting for the cluster name.
-	fmt.Printf("Cluster %s has been successfully created.\n", c.Name)
-	cfg.Clusters = append(cfg.Clusters, c)
-	return cfg.Save()
+	fmt.Printf("Cluster %s has been created.\n", cluster.Name)
+	return nil
 }

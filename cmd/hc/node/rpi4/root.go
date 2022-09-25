@@ -1,14 +1,14 @@
-package cluster
+package rpi4
 
 import (
 	"github.com/psviderski/homecloud/internal/client"
 	"github.com/spf13/cobra"
 )
 
-func NewClusterCommand(c *client.Client) *cobra.Command {
+func NewRPi4Command(c *client.Client) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "cluster",
-		Short: "Manage Kubernetes clusters",
+		Use:   "rpi4",
+		Short: "Manage Raspberry Pi 4 nodes for a Kubernetes cluster",
 	}
 	cmd.AddCommand(
 		NewCreateCommand(c),

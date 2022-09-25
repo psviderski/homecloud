@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/psviderski/homecloud/cmd/hc/cluster"
+	"github.com/psviderski/homecloud/cmd/hc/node"
+	"github.com/psviderski/homecloud/internal/client"
 	"github.com/spf13/cobra"
 )
 
@@ -12,6 +14,11 @@ func main() {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
-	app.AddCommand(cluster.NewClusterCommand())
+	c, err := client.NewClient("")
+	cobra.CheckErr(err)
+	app.AddCommand(
+		cluster.NewClusterCommand(c),
+		node.NewNodeCommand(c),
+	)
 	cobra.CheckErr(app.Execute())
 }

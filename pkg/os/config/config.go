@@ -18,14 +18,14 @@ type K3sRole string
 
 type Config struct {
 	Hostname          string
-	Password          string
+	Password          string   `yaml:"password,omitempty"`
 	SSHAuthorizedKeys []string `yaml:"ssh_authorized_keys"`
 	Network           NetworkConfig
 	K3s               K3sConfig
 }
 
 type NetworkConfig struct {
-	Wifi      WifiConfig
+	Wifi      WifiConfig `yaml:"wifi,omitempty"`
 	Tailscale TailscaleConfig
 }
 
@@ -40,7 +40,7 @@ type TailscaleConfig struct {
 
 type K3sConfig struct {
 	Role   K3sRole
-	Server string
+	Server string `yaml:"server,omitempty"`
 	Token  string
 }
 
