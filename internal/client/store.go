@@ -120,6 +120,9 @@ func (s *Store) ListNodes(clusterName string) ([]Node, error) {
 	dir := filepath.Join(filepath.Dir(s.clusterPath(clusterName)), "nodes")
 	entries, err := os.ReadDir(dir)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return []Node{}, nil
+		}
 		return nil, err
 	}
 	nodes := make([]Node, 0, len(entries))
