@@ -7,8 +7,8 @@ import (
 )
 
 // AuthorizedKeyFromPrivate creates an SSH public authorized key corresponding to the private key.
-func AuthorizedKeyFromPrivate(key string) (string, error) {
-	signer, err := ssh.ParsePrivateKey([]byte(key))
+func AuthorizedKeyFromPrivate(key []byte) (string, error) {
+	signer, err := ssh.ParsePrivateKey(key)
 	if err != nil {
 		if _, ok := err.(*ssh.PassphraseMissingError); !ok {
 			return "", err

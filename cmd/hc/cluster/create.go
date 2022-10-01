@@ -38,17 +38,15 @@ func NewCreateCommand(c *client.Client) *cobra.Command {
 }
 
 func create(c *client.Client, opts createOptions) error {
-	sshKey := ""
+	var sshKey []byte
 	if opts.sshKey != "" {
 		path, err := homedir.Expand(opts.sshKey)
 		if err != nil {
 			return fmt.Errorf("cannot find SSH private key: %w", err)
 		}
-		data, err := os.ReadFile(path)
-		if err != nil {
+		if sshKey, err = os.ReadFile(path); err != nil {
 			return fmt.Errorf("cannot read SSH private key: %w", err)
 		}
-		sshKey = string(data)
 	}
 	cluster, err := c.CreateCluster(opts.name, sshKey)
 	if err != nil {

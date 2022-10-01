@@ -12,6 +12,7 @@ import (
 const (
 	storeDir         = ".homecloud"
 	clusterFileName  = "cluster.json"
+	sshKeyFileName   = "ssh_key"
 	nodeFileName     = "node.json"
 	osConfigFileName = "hcos.yaml"
 )
@@ -40,7 +41,7 @@ func LoadOrCreate(rootDir string) (*Store, error) {
 }
 
 func (s *Store) GetCluster(name string) (Cluster, error) {
-	path := s.clusterPath(name)
+	path := filepath.Join(s.clusterDir(name), clusterFileName)
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -50,6 +51,11 @@ func (s *Store) GetCluster(name string) (Cluster, error) {
 	}
 	var cluster Cluster
 	if err := json.Unmarshal(data, &cluster); err != nil {
+		return Cluster{}, err
+	}
+
+	sshKeyPath := filepath.Join(s.clusterDir(name), sshKeyFileName)
+	if cluster.SSHKey, err = os.ReadFile(sshKeyPath); err != nil {
 		return Cluster{}, err
 	}
 	return cluster, nil
@@ -73,22 +79,22 @@ func (s *Store) ListClusters() ([]Cluster, error) {
 }
 
 func (s *Store) SaveCluster(cluster Cluster) error {
-	path := s.clusterPath(cluster.Name)
-	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+	dir := s.clusterDir(cluster.Name)
+	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
 	}
 	data, err := json.Marshal(cluster)
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(path, data, 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, clusterFileName), data, 0600); err != nil {
 		return err
 	}
-	return nil
+	return os.WriteFile(filepath.Join(dir, sshKeyFileName), cluster.SSHKey, 0600)
 }
 
-func (s *Store) clusterPath(name string) string {
-	return filepath.Join(s.rootDir, "clusters", name, clusterFileName)
+func (s *Store) clusterDir(name string) string {
+	return filepath.Join(s.rootDir, "clusters", name)
 }
 
 func (s *Store) GetNode(clusterName, name string) (Node, error) {
@@ -117,7 +123,7 @@ func (s *Store) GetNode(clusterName, name string) (Node, error) {
 }
 
 func (s *Store) ListNodes(clusterName string) ([]Node, error) {
-	dir := filepath.Join(filepath.Dir(s.clusterPath(clusterName)), "nodes")
+	dir := filepath.Join(s.clusterDir(clusterName), "nodes")
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -163,7 +169,7 @@ func (s *Store) SaveNode(clusterName string, node Node) error {
 }
 
 func (s *Store) nodeDir(clusterName, name string) string {
-	return filepath.Join(filepath.Dir(s.clusterPath(clusterName)), "nodes", name)
+	return filepath.Join(s.clusterDir(clusterName), "nodes", name)
 }
 
 func getDefaultDir() string {

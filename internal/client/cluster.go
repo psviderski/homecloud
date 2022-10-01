@@ -10,9 +10,9 @@ import (
 type Cluster struct {
 	Name   string `json:"name"`
 	Token  string `json:"token"`
-	SSHKey string `json:"sshKey"`
 	// The control plane endpoint. It is set when a first control plane node is added to the cluster.
 	Server string `json:"server"`
+	SSHKey []byte `json:"-"`
 }
 
 func (cluster *Cluster) SSHAuthorizedKey() (string, error) {
@@ -27,14 +27,14 @@ func (c *Client) GetCluster(name string) (Cluster, error) {
 	return c.Store.GetCluster(name)
 }
 
-func (c *Client) CreateCluster(name, sshKey string) (Cluster, error) {
+func (c *Client) CreateCluster(name string, sshKey []byte) (Cluster, error) {
 	if _, err := c.GetCluster(name); err == nil {
 		return Cluster{}, fmt.Errorf("cluster %s already exists", name)
 	} else if _, ok := err.(*ErrNotFound); !ok {
 		return Cluster{}, err
 	}
 
-	if sshKey == "" {
+	if len(sshKey) == 0 {
 		// TODO: generate a key pair. For now, just return an error.
 		return Cluster{}, fmt.Errorf("ssh key is required")
 	}
