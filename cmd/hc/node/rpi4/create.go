@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"github.com/psviderski/homecloud/internal/client"
 	"github.com/spf13/cobra"
+	"strings"
 )
 
 func NewCreateCommand(c *client.Client) *cobra.Command {
 	req := client.NodeRequest{}
+	var wifi string
 	cmd := &cobra.Command{
 		Use:   "create NAME [-c CLUSTER_NAME]",
 		Short: "Create a new Raspberry Pi 4 node for a Kubernetes cluster",
@@ -19,7 +21,9 @@ func NewCreateCommand(c *client.Client) *cobra.Command {
 			if req.ClusterName, err = cmd.Flags().GetString("cluster"); err != nil {
 				return err
 			}
-			// TODO: list nodes and check --control-plane is set if this is the first node in the cluster.
+			if wifi != "" {
+				req.WifiName, req.WifiPassword, _ = strings.Cut(wifi, ":")
+			}
 			node, err := c.CreateRPi4Node(req)
 			if err != nil {
 				return err
@@ -35,6 +39,9 @@ func NewCreateCommand(c *client.Client) *cobra.Command {
 	_ = cmd.MarkFlagRequired("ts-auth-key")
 	cmd.Flags().StringVar(&req.Image, "image", "",
 		"Path or URL to the Home Cloud OS image to use for the node")
+	// TODO: prompt for the WiFi password if it is not provided.
+	cmd.Flags().StringVar(&wifi, "wifi", "",
+		"Colon separated Wi-Fi network name and password to connect the node to (e.g. \"my-wifi:password\")")
 	// TODO: download the latest image from GitHub if not specified and save under .homecloud.
 	// TODO: download the image by URL.
 	_ = cmd.MarkFlagRequired("image")

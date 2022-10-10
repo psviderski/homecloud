@@ -29,6 +29,8 @@ type NodeRequest struct {
 	Name             string
 	ClusterName      string
 	ControlPlane     bool
+	WifiName         string
+	WifiPassword     string
 	TailscaleAuthKey string
 	Image            string
 }
@@ -85,6 +87,12 @@ func (c *Client) CreateRPi4Node(req NodeRequest) (Node, error) {
 			},
 		},
 		K3s: k3sCfg,
+	}
+	if req.WifiName != "" {
+		osCfg.Network.Wifi = config.WifiConfig{
+			Name:     req.WifiName,
+			Password: req.WifiPassword,
+		}
 	}
 	node := Node{
 		Name:        req.Name,

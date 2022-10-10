@@ -17,21 +17,21 @@ const (
 type K3sRole string
 
 type Config struct {
-	Hostname          string
-	Password          string   `yaml:"password,omitempty"`
-	SSHAuthorizedKeys []string `yaml:"ssh_authorized_keys"`
-	Network           NetworkConfig
-	K3s               K3sConfig
+	Hostname          string        `yaml:"hostname"`
+	Password          string        `yaml:"password,omitempty"`
+	SSHAuthorizedKeys []string      `yaml:"ssh_authorized_keys"`
+	Network           NetworkConfig `yaml:"network"`
+	K3s               K3sConfig     `yaml:"k3s"`
 }
 
 type NetworkConfig struct {
-	Wifi      WifiConfig `yaml:"wifi,omitempty"`
-	Tailscale TailscaleConfig
+	Wifi      WifiConfig      `yaml:"wifi,omitempty"`
+	Tailscale TailscaleConfig `yaml:"tailscale"`
 }
 
 type WifiConfig struct {
-	Name     string
-	Password string
+	Name     string `yaml:"name"`
+	Password string `yaml:"password"`
 }
 
 type TailscaleConfig struct {
@@ -39,9 +39,9 @@ type TailscaleConfig struct {
 }
 
 type K3sConfig struct {
-	Role   K3sRole
-	Server string `yaml:"server,omitempty"`
-	Token  string
+	Role   K3sRole `yaml:"role"`
+	Server string  `yaml:"server,omitempty"`
+	Token  string  `yaml:"token"`
 }
 
 func ReadConfig(path string) (Config, error) {
