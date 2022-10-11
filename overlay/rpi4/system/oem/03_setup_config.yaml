@@ -5,26 +5,27 @@ stages:
   # stage the persistent volume is not configured and not mounted at /usr/local yet.
   # The downside is that any configuration for the rootfs in user-defined config won't have any effect.
   initramfs.before:
-    - name: "Move hcos-config.yaml from the boot partition to /usr/local/cloud-config"
+    - name: "Move hcos.yaml from the boot partition to /usr/local/cloud-config"
       if: '[ ! -f "/run/cos/recovery_mode" ]'
       commands:
         - |
           set -e
+          HCOS_CONFIG_FILENAME="hcos.yaml"
 
-          system_boot_dev=$(blkid -L COS_GRUB || true)
+          system_boot_dev=$(blkid -L HCOS_BOOT || true)
           if [ -z "$system_boot_dev" ]; then
-            echo "Skipping cloud-config installation from the COS_GRUB partition as it was not found."
+            echo "Skipping cloud-config installation from the HCOS_BOOT partition as it was not found."
             exit
           fi
 
           system_boot_mnt=/tmp/hcos_boot
           mkdir -p "$system_boot_mnt"
           mount "$system_boot_dev" "$system_boot_mnt"
-          if [ -f "${system_boot_mnt}/hcos-config.yaml" ]; then
+          if [ -f "${system_boot_mnt}/${HCOS_CONFIG_FILENAME}" ]; then
             mkdir -p /usr/local/cloud-config
-            mv "${system_boot_mnt}/hcos-config.yaml" /usr/local/cloud-config/config.yaml
-            chmod 600 /usr/local/cloud-config/config.yaml
-            echo "hcos-config.yaml has been moved from the boot partition to /usr/local/cloud-config/config.yaml"
+            mv "${system_boot_mnt}/${HCOS_CONFIG_FILENAME}" "/usr/local/cloud-config/${HCOS_CONFIG_FILENAME}"
+            chmod 600 "/usr/local/cloud-config/${HCOS_CONFIG_FILENAME}"
+            echo "${HCOS_CONFIG_FILENAME} has been moved from the boot partition to /usr/local/cloud-config/${HCOS_CONFIG_FILENAME}"
           fi
 
           umount "$system_boot_mnt"

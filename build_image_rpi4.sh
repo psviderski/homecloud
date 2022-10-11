@@ -185,9 +185,9 @@ state_part="${mapped_image_loop_dev}p2"
 recovery_part="${mapped_image_loop_dev}p3"
 persistent_part="${mapped_image_loop_dev}p4"
 
-# Format partitions (GRUB, STATE, RECOVERY, PERSISTENT).
+# Format partitions (BOOT, STATE, RECOVERY, PERSISTENT).
 mkfs.vfat -F 32 "${system_boot_part}"
-fatlabel "${system_boot_part}" COS_GRUB
+fatlabel "${system_boot_part}" HCOS_BOOT
 mkfs.ext4 -F -L "${STATE_LABEL}" "$state_part"
 mkfs.ext4 -F -L "${RECOVERY_LABEL}" "$recovery_part"
 mkfs.ext4 -F -L "${PERSISTENT_LABEL}" "$persistent_part"
