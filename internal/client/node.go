@@ -141,6 +141,9 @@ func (c *Client) validateNodeName(clusterName, name string) error {
 // installImage installs a raw disk image from the local file system on the specified block device.
 // The image file must be compressed with xz.
 func installImage(imagePath string, osCfg config.Config, device string) error {
+	if _, err := os.Stat(imagePath); err != nil {
+		return err
+	}
 	if !strings.HasSuffix(imagePath, ".xz") {
 		// TODO: support uncompressed images.
 		return fmt.Errorf("image file must be compressed with xz")
@@ -156,10 +159,7 @@ func installImage(imagePath string, osCfg config.Config, device string) error {
 		return err
 	}
 	if strings.Contains(string(mounts), device) {
-		umountCmd := exec.Command("diskutil", "unmountDisk", device)
-		umountCmd.Stdout = os.Stdout
-		umountCmd.Stderr = os.Stderr
-		if err := umountCmd.Run(); err != nil {
+		if err := unmountDisk(device); err != nil {
 			return err
 		}
 	}
@@ -219,7 +219,7 @@ func getPartitionMountPath(device string) (string, error) {
 }
 
 func unmountDisk(device string) error {
-	cmd := exec.Command("diskutil", "umountDisk", device)
+	cmd := exec.Command("diskutil", "unmountDisk", device)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
