@@ -39,12 +39,15 @@ func NewCreateCommand(c *client.Client) *cobra.Command {
 	_ = cmd.MarkFlagRequired("ts-auth-key")
 	cmd.Flags().StringVar(&req.Image, "image", "",
 		"Path or URL to the Home Cloud OS image to use for the node")
-	// TODO: prompt for the WiFi password if it is not provided.
+	// TODO: download the image by URL.
+	// TODO: download the latest image from GitHub if not specified and save under .homecloud.
+	_ = cmd.MarkFlagRequired("image")
 	cmd.Flags().StringVar(&wifi, "wifi", "",
 		"Colon separated Wi-Fi network name and password to connect the node to (e.g. \"my-wifi:password\")")
-	// TODO: download the latest image from GitHub if not specified and save under .homecloud.
-	// TODO: download the image by URL.
-	_ = cmd.MarkFlagRequired("image")
-	// TODO: --wifi NETWORK and prompt password and --wifi-file - name and password are separated by a newline.
+	// TODO: prompt for the WiFi password if it is not provided.
+	cmd.Flags().StringVar(&req.InstallDevice, "disk", "",
+		"Disk device to partition and install the node OS on (e.g. /dev/disk4 or /dev/sdb). "+
+			"Please use with caution as all data on the device will be destroyed!")
+	_ = cmd.MarkFlagRequired("dev")
 	return cmd
 }

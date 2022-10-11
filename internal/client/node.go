@@ -3,10 +3,20 @@ package client
 import (
 	"fmt"
 	"github.com/psviderski/homecloud/pkg/os/config"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"regexp"
+	"strings"
+	"syscall"
+	"time"
 )
 
 const (
 	RPi4Provider = "rpi4"
+	// OSConfigFilename is a cloud-config file name on the node file system.
+	// Keep the name in sync with the one defined in /overlay/rpi4/system/oem/03_setup_config.yaml.
+	OSConfigFilename = "hcos.yaml"
 )
 
 type Node struct {
@@ -33,6 +43,7 @@ type NodeRequest struct {
 	WifiPassword     string
 	TailscaleAuthKey string
 	Image            string
+	InstallDevice    string
 }
 
 func (c *Client) GetNode(clusterName, name string) (Node, error) {
@@ -100,6 +111,12 @@ func (c *Client) CreateRPi4Node(req NodeRequest) (Node, error) {
 		Provider:    RPi4Provider,
 		OSConfig:    osCfg,
 	}
+
+	// TODO: download the latest image from GitHub if not specified and save under .homecloud. Update --image flag.
+	// TODO: download the image by URL.
+	if err := installImage(req.Image, osCfg, req.InstallDevice); err != nil {
+		return Node{}, err
+	}
 	if err := c.Store.SaveNode(cluster.Name, node); err != nil {
 		return Node{}, err
 	}
@@ -119,4 +136,91 @@ func (c *Client) validateNodeName(clusterName, name string) error {
 		return err
 	}
 	return nil
+}
+
+// installImage installs a raw disk image from the local file system on the specified block device.
+// The image file must be compressed with xz.
+func installImage(imagePath string, osCfg config.Config, device string) error {
+	if !strings.HasSuffix(imagePath, ".xz") {
+		// TODO: support uncompressed images.
+		return fmt.Errorf("image file must be compressed with xz")
+	}
+	if _, err := exec.LookPath("xz"); err != nil {
+		return fmt.Errorf("%w. Please install xz utils, e.g. using `brew install xz` or `apt-get install xz-utils`",
+			err)
+	}
+
+	// Unmount all device partitions if any of them are mounted.
+	mounts, err := exec.Command("mount").CombinedOutput()
+	if err != nil {
+		return err
+	}
+	if strings.Contains(string(mounts), device) {
+		umountCmd := exec.Command("diskutil", "unmountDisk", device)
+		umountCmd.Stdout = os.Stdout
+		umountCmd.Stderr = os.Stderr
+		if err := umountCmd.Run(); err != nil {
+			return err
+		}
+	}
+
+	useSudo := false
+	if f, err := os.OpenFile(device, syscall.O_WRONLY, 0600); err == nil {
+		_ = f.Close()
+	} else if os.IsPermission(err) {
+		useSudo = true
+	} else {
+		return err
+	}
+	xzCmd := fmt.Sprintf("xz --decompress --stdout %q", imagePath)
+	ddCmd := fmt.Sprintf("dd of=%q status=progress", device)
+	if useSudo {
+		ddCmd = "sudo " + ddCmd
+		fmt.Println("Using sudo to write to the disk device. Please enter your user password if prompted.")
+	}
+	cmd := exec.Command("/bin/sh", "-c", fmt.Sprintf("%s | %s", xzCmd, ddCmd))
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		return fmt.Errorf("failed to write image to disk %s: %w", device, err)
+	}
+	// The first partition on a RPi4 disk is a FAT32 boot partition that is automatically mounted after writing
+	// the image. Note, it takes a moment to automount. See build_image_rpi4.sh for details on image layout.
+	path := ""
+	for start := time.Now(); time.Since(start) < 5 * time.Second; {
+		path, err = getPartitionMountPath(device + "s1")
+		if err != nil {
+			time.Sleep(time.Second)
+		} else {
+			break
+		}
+	}
+	if err != nil {
+		return err
+	}
+	if err := osCfg.Write(filepath.Join(path, OSConfigFilename), 0600); err != nil {
+		return err
+	}
+	return unmountDisk(device)
+}
+
+func getPartitionMountPath(device string) (string, error) {
+	diskInfo, err := exec.Command("diskutil", "info", device).CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("failed to get info for disk partition %s: %w", device, err)
+	}
+	r := regexp.MustCompile(`Mount Point:\s+(.+)`)
+	match := r.FindStringSubmatch(string(diskInfo))
+	if match == nil {
+		return "", fmt.Errorf("disk partition %s is not mounted", device)
+	}
+	return match[1], nil
+}
+
+func unmountDisk(device string) error {
+	cmd := exec.Command("diskutil", "umountDisk", device)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
