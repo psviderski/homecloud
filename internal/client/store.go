@@ -1,7 +1,6 @@
 package client
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"gopkg.in/yaml.v3"
@@ -154,18 +153,8 @@ func (s *Store) SaveNode(clusterName string, node Node) error {
 	if err := os.WriteFile(filepath.Join(dir, nodeFileName), nodeData, 0644); err != nil {
 		return err
 	}
-
-	var osCfgData bytes.Buffer
-	enc := yaml.NewEncoder(&osCfgData)
-	enc.SetIndent(2)
-	if err := enc.Encode(node.OSConfig); err != nil {
-		return err
-	}
-	if err := enc.Close(); err != nil {
-		return err
-	}
 	// OS config contains sensitive data, so we need to make sure it's not readable by other users.
-	return os.WriteFile(filepath.Join(dir, osConfigFileName), osCfgData.Bytes(), 0600)
+	return node.OSConfig.Write(filepath.Join(dir, osConfigFileName), 0600)
 }
 
 func (s *Store) nodeDir(clusterName, name string) string {

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	yaml "gopkg.in/yaml.v3"
 	"os"
@@ -54,4 +55,17 @@ func ReadConfig(path string) (Config, error) {
 		return Config{}, fmt.Errorf("unable to parse config file %q: %w", path, err)
 	}
 	return config, nil
+}
+
+func (c *Config) Write(path string, perm os.FileMode) error {
+	var data bytes.Buffer
+	enc := yaml.NewEncoder(&data)
+	enc.SetIndent(2)
+	if err := enc.Encode(c); err != nil {
+		return err
+	}
+	if err := enc.Close(); err != nil {
+		return err
+	}
+	return os.WriteFile(path, data.Bytes(), perm)
 }
