@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	DefaultConfigPath = "/usr/local/cloud-config/config.yaml"
+	DefaultConfigPath = "/usr/local/cloud-config/hcos.yaml"
 
 	ClusterInitRole  K3sRole = "cluster-init"
 	ControlPlaneRole K3sRole = "control-plane"
