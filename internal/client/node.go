@@ -153,6 +153,7 @@ func installImage(imagePath string, osCfg config.Config, device string) error {
 			err)
 	}
 
+	// TODO: retrieve information about the disk and ask for user confirmation if it is correct.
 	// Unmount all device partitions if any of them are mounted.
 	mounts, err := exec.Command("mount").CombinedOutput()
 	if err != nil {

@@ -105,6 +105,9 @@ rpi4-elemental-image:
         && rm /usr/sbin/k3s-killall.sh /usr/sbin/k3s-uninstall.sh
     # Create the default Home Cloud user "hc".
     RUN adduser --uid 2000 --disabled-password --gecos "Home Cloud user" hc \
+        # Unlock the user account (change the password field from ! to *) to allow SSH with a public key
+        # if the password hasn't been set by a cloud-config.
+        && echo "hc:*" | chpasswd -e \
         && adduser hc wheel
 
     # Patch elemental-toolkit services to redirect their output to logfiles.
