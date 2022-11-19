@@ -8,11 +8,12 @@ on:
 
 jobs:
   build:
+    name: Build container image
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Install Earthly
         uses: earthly/actions-setup@v1
-      - name: Earthly version
-        run: earthly --version
+      - name: Build +rpi4-elemental-image
+        run: earthly +rpi4-elemental-image
