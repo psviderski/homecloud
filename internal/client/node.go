@@ -92,7 +92,6 @@ func (c *Client) CreateRPi4Node(req NodeRequest) (Node, error) {
 		Hostname:          fmt.Sprintf("%s-%s", req.Name, cluster.Name),
 		SSHAuthorizedKeys: []string{sshKey},
 		Network: config.NetworkConfig{
-			// TODO: configure wifi network if specified.
 			Tailscale: config.TailscaleConfig{
 				AuthKey: req.TailscaleAuthKey,
 			},
